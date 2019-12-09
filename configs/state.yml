@@ -1,0 +1,125 @@
+---
+dev:
+    table_name: 'State_Dev'
+    partition_key: 'stateName'
+    sort_key: 'countryCode'
+    attributedefs:
+        -
+            AttributeName: 'stateId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'stateHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'stateName'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'stateCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+    defaults:
+        -
+            stateName: 'Victoria'
+            stateCode: 'VIC'
+            countryCode: 'AU'
+        -
+            stateName: 'New South Wales'
+            stateCode: 'NSW'
+            countryCode: 'AU'
+        -
+            stateName: 'Australian Capital Territory'
+            stateCode: 'ACT'
+            countryCode: 'AU'
+        -
+            stateName: 'Northern Territory'
+            stateCode: 'NT'
+            countryCode: 'AU'
+        -
+            stateName: 'Queensland'
+            stateCode: 'QLD'
+            countryCode: 'AU'
+        -
+            stateName: 'South Australia'
+            stateCode: 'SA'
+            countryCode: 'AU'
+        -
+            stateName: 'Tasmania'
+            stateCode: 'TAS'
+            countryCode: 'AU'
+        -
+            stateName: 'Western Australia'
+            stateCode: 'WA'
+            countryCode: 'AU'
+staging:
+    table_name: 'State_Staging'
+    partition_key: 'stateName'
+    sort_key: 'countryCode'
+    attributedefs:
+        -
+            AttributeName: 'stateId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'stateHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'stateName'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'stateCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+    defaults:
+        -
+            stateName: 'Victoria'
+            stateCode: 'VIC'
+            countryCode: 'AU'
+        -
+            stateName: 'New South Wales'
+            stateCode: 'NSW'
+            countryCode: 'AU'
+        -
+            stateName: 'Australian Capital Territory'
+            stateCode: 'ACT'
+            countryCode: 'AU'
+        -
+            stateName: 'Northern Territory'
+            stateCode: 'NT'
+            countryCode: 'AU'
+        -
+            stateName: 'Queensland'
+            stateCode: 'QLD'
+            countryCode: 'AU'
+        -
+            stateName: 'South Australia'
+            stateCode: 'SA'
+            countryCode: 'AU'
+        -
+            stateName: 'Tasmania'
+            stateCode: 'TAS'
+            countryCode: 'AU'
+        -
+            stateName: 'Western Australia'
+            stateCode: 'WA'
+            countryCode: 'AU'

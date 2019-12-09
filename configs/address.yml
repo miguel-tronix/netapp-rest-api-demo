@@ -1,0 +1,69 @@
+---
+dev:
+    table_name: 'Address_Dev'
+    partition_key: 'addressId'
+    attributedefs:
+        -
+            AttributeName: 'addressId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'addressHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'address'
+            AttributeType: 'S'
+        -
+            AttributeName: 'city'
+            AttributeTYpe: 'S'
+        -
+            AttributeName: 'zipCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'stateId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+staging:
+    table_name: 'Address_Staging'
+    partition_key: 'addressId'
+    attributedefs:
+        -
+            AttributeName: 'addressId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'addressHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'address'
+            AttributeType: 'S'
+        -
+            AttributeName: 'city'
+            AttributeTYpe: 'S'
+        -
+            AttributeName: 'zipCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'stateId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'

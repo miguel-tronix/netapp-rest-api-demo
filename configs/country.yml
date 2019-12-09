@@ -1,0 +1,59 @@
+---
+dev:
+    table_name: 'Country_Dev'
+    partition_key: 'countryCode'
+    attributedefs:
+        -
+            AttributeName: 'countryId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'countryHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'countryName'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+    defaults:
+        -
+            countryName: 'Australia'
+            countryCode: 'AU'
+staging:
+    table_name: 'Country_Staging'
+    partition_key: 'countryCode'
+    attributedefs:
+        -
+            AttributeName: 'countryId'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'countryHash'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'countryName'
+            AttributeType: 'S'
+        -
+            AttributeName: 'countryCode'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updatedTimestamp'
+            AtrributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+    defaults:
+        -
+            countryName: 'Australia'
+            countryCode: 'AU'
