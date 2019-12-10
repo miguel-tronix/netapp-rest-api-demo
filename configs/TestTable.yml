@@ -1,0 +1,65 @@
+---
+dev:
+    table_name: 'TestTable_Dev'
+    partition_key: 'id'
+    attributedefs:
+        -
+            AttributeName: 'secondTestId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'id'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'testName'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'thirdTestId'
+            AttributeType: 'N'
+        -
+            AttributeName: 'forthTestId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updateTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'deleted'
+            AttributeType: 'N'
+    defaults:
+        -
+         secondTestId: 'hello'
+         testName: 'world'
+         thirdTestId: 'triple'
+         fourthTestId: 'fake'
+        -
+         secondTestId: 'adding'
+         testName: 'more'
+         thirdTestId: 'stuff'
+         fourthTestId: 'test'
+staging:
+    table_name: 'TestTable_QA'
+    partition_key: 'id'
+    attributedefs:
+        -
+            AttributeName: 'secondTestId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'id'
+            AttributeType: 'UUID'
+        -
+            AttributeName: 'testName'
+            AttributeType: 'HASH'
+        -
+            AttributeName: 'thirdTestId'
+            AttributeType: 'N'
+        -
+            AttributeName: 'forthTestId'
+            AttributeType: 'S'
+        -
+            AttributeName: 'origTimestamp'
+            AttributeType: 'S'
+        -
+            AttributeName: 'updateTimestamp'
+            AttributeType: 'S'

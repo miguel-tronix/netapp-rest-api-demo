@@ -1,0 +1,11 @@
+../xmlrunner/__init__.py
+../xmlrunner/__init__.pyc
+../xmlrunner/version.py
+../xmlrunner/version.pyc
+../xmlrunner/xmlrunner.py
+../xmlrunner/xmlrunner.pyc
+PKG-INFO
+SOURCES.txt
+dependency_links.txt
+top_level.txt
+zip-safe

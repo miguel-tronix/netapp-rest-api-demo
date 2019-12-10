@@ -3,7 +3,7 @@
 
 import unittest
 import json
-
+import xmlrunner
 '''
 Test Cases for /address API functions
 '''

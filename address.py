@@ -10,10 +10,11 @@ import json
 #import os
 import utils
 import dynamodb_wrapper
+from enum import Enum
 
 '''
 AWS Lambda handler
-Entry point for Transpire ANZ-BlueApp address
+Entry point for Address
 /address requensts will flow through here
 '''
 
@@ -170,7 +171,7 @@ class address():
         return trns_address_obj
 
     def update_address(self, address_req_obj):
-        from merchant import merchant_type
+        from address import merchant_type
         import utils
 
         st_obj = None
@@ -453,3 +454,28 @@ class country():
 
         return self.country_lst
 
+
+class merchant_type(Enum):
+
+    TRANSPIRE = {
+        'addressId': None,
+        'address': {
+            'address': None,
+            'city': None,
+            'zipCode': None,
+            'stateId': None,
+            'countryId': None,
+            'state': {
+                'stateName': None,
+                'stateCode': None,
+                'countryCode': None,
+            },
+            'country': {
+               'countryName': None,
+               'countryCode': None
+                 }
+            },
+        'origTimestamp': None,
+        'updatedTimestamp': None,
+        'deleted': None
+        }

@@ -1,0 +1,3187 @@
+openapi: "3.0.1"
+info:
+  title: "Address Microservice API - DEVELOPMENT"
+  description: "Demo App"
+  contact:
+    email: "miguel.desousa@pm.me"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+  version: "1.2.8"
+servers:
+- url: "https://j7qj4zs6f4.execute-api.us-east-1.amazonaws.com/dev"
+#  - url: "https://j7qj4zs6f4.execute-api.us-east-1.amazonaws.com/{basePath}"
+  # variables:
+    # basePath:
+      # default: "/dev"
+tags:
+- name: "address"
+  description: "Operations about addresses" 
+paths:
+  /address:
+    post:
+      tags:
+      - "address"
+      operationId: "addAddress"
+      summary: "Add a new address to"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new address"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Address"
+        required: true
+      responses:
+        405:
+          description: "Invalid input"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        200:
+          description: "Address creation successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfAddress"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+    put:
+      tags:
+      - "address"
+      operationId: "updateAddress"
+      summary: "Update an existing address"
+      description: "You need to be logged in as the Customer/ANZ Support to add update a address"
+      parameters:
+      - name: "addressId"
+        in: "path"
+        required: true
+        description: "ANZPaid identifier of address to be updated"
+        schema:
+          type: "string"
+      requestBody:
+        description: "Updated address object"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Address"
+        required: true
+      responses:
+        200:
+          description: "Address update successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfAddress"
+        400:
+          description: "400 response"
+          content: {}
+        404:
+          description: "404 response"
+          content: {}
+        405:
+          description: "Invalid input"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /address/{addressId}:
+    delete:
+      tags:
+      - "address"
+      operationId: "deleteAddress"
+      summary: "Delete merchant"
+      description: "You need to be logged in as the Customer/ANZ Support to delete an address"
+      parameters:
+      - name: "addressId"
+        description: "ANZPaid identifer of address to delete"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Delete address Successful"
+          content: {}
+        400:
+          description: "Invalid address ID supplied"
+          content: {}
+        404:
+          description: "Address not found"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+    get:
+      tags:
+      - "address"
+      operationId: "getAddressById"
+      summary: "Get address by ID"
+      description: "Returns a single address"
+      parameters:
+      - name: "addressId"
+        description: "ANZPaid identifier of address to return"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Get Address Successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfAddress"
+        400:
+          description: "Invalid address ID supplied"
+          content: {}
+        404:
+          description: "Address not found"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /location:
+    get:
+      tags:
+      - "location"
+      operationId: "getAllLocations"
+      summary: "Fetch all locations in ANZ Paid"
+      description: "You need to be logged in as the ANZ Support to view all the locations"
+      parameters:
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n[\n##TODO: Update\
+                \ this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n \"locationId\" : \"$elem.locationId\",\n  \"merchant\"\
+                \ : {\n    \"merchantId\" : \"$elem.merchant.merchantId\" ,\n    \"\
+                merchantServiceId\" : \"$elem.merchant.merchantServiceId\",\n    \"\
+                merchantAnzId\" : \"$elem.merchant.merchantAnzId\",\n    \"merchantName\"\
+                \ : \"$elem.merchant.merchantName\",\n    \"address\" : {\n      \"\
+                addressId\" : \"$elem.merchant.address.addressId\",\n      \"address\"\
+                \ : \"$elem.merchant.address.address\",\n      \"city\" : \"$elem.merchant.address.city\"\
+                ,\n      \"zipCode\" : \"$elem.merchant.address.zipCode\",\n     \
+                \ \"stateId\": \"$elem.merchant.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$elem.merchant.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$elem.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$elem.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$elem.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$elem.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$elem.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$elem.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$elem.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$elem.address.addressId\"\
+                ,\n      \"address\" : \"$elem.address.address\",\n      \"city\"\
+                \ : \"$elem.address.city\",\n      \"zipCode\" : \"$elem.address.zipCode\"\
+                ,\n      \"stateId\": \"$elem.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$elem.address.state.stateId\",\n  \
+                \      \"stateName\" : \"$elem.address.state.stateName\",\n      \
+                \  \"stateCode\": \"$elem.address.state.stateCode\"\n      },\n  \
+                \    \"countryId\": \"$elem.address.countryId\",\n      \"country\"\
+                \ : {\n          \"countryId\" : \"$elem.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$elem.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$elem.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"$elem.locationName\",\n\
+                \  \"activeLocation\" : \"$elem.activeLocation\",\n  \"timezone\"\
+                \ : \"$elem.timezone\"\n}\n#if($foreach.hasNext),#end\n#end\n]"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    post:
+      tags:
+      - "location"
+      operationId: "addLocation"
+      summary: "Add a new location to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new location"
+      parameters:
+      - name: "Content-Type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      - name: "x-api-key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Location"
+        required: true
+      responses:
+        200:
+          description: "Location creation successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfLocation"
+        405:
+          description: "Invalid input"
+          content:
+              application/json:
+                  schema:
+                      type: "object"
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"locationId\"\
+                \ : \"$inputRoot.locationId\",\n  \"merchant\" : {\n    \"merchantId\"\
+                \ : \"$inputRoot.merchant.merchantId\" ,\n    \"merchantServiceId\"\
+                \ : \"$inputRoot.merchant.merchantServiceId\",\n    \"merchantAnzId\"\
+                \ : \"$inputRoot.merchant.merchantAnzId\",\n    \"merchantName\" :\
+                \ \"$inputRoot.merchant.merchantName\",\n    \"address\" : {\n   \
+                \   \"addressId\" : \"$inputRoot.merchant.address.addressId\",\n \
+                \     \"address\" : \"$inputRoot.merchant.address.address\",\n   \
+                \   \"city\" : \"$inputRoot.merchant.address.city\",\n      \"zipCode\"\
+                \ : \"$inputRoot.merchant.address.zipCode\",\n      \"stateId\": \"\
+                $inputRoot.merchant.address.stateId\",\n      \"state\" : {\n    \
+                \    \"stateId\" : \"$inputRoot.merchant.address.state.stateId\",\n\
+                \        \"stateName\" : \"$inputRoot.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$inputRoot.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$inputRoot.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$inputRoot.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$inputRoot.address.addressId\"\
+                ,\n      \"address\" : \"$inputRoot.address.address\",\n      \"city\"\
+                \ : \"$inputRoot.address.city\",\n      \"zipCode\" : \"$inputRoot.address.zipCode\"\
+                ,\n      \"stateId\": \"$inputRoot.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$inputRoot.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$inputRoot.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.address.state.stateCode\"\n\
+                \      },\n      \"countryId\": \"$inputRoot.address.countryId\",\n\
+                \      \"country\" : {\n          \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"$inputRoot.locationName\"\
+                ,\n  \"activeLocation\" : \"$inputRoot.activeLocation\",\n  \"timezone\"\
+                \ : \"$inputRoot.timezone\"\n}"
+          Upstream*:
+            statusCode: "405"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "location"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+    x-amazon-apigateway-any-method:
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /location/{locationId}:
+    delete:
+      tags:
+      - "location"
+      operationId: "deleteLocation"
+      summary: "Delete location"
+      description: "You need to be logged in as the Customer/ANZ Support to delete a location"
+      parameters:
+      - name: "locationId"
+        description: "ANZPaid identifier of location to be deleted"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Delete location Successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        400:
+          description: "Invalid location id supplied"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        404:
+          description: "Location not found"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"locationId\"\
+                \ : \"$inputRoot.locationId\",\n  \"merchant\" : {\n    \"merchantId\"\
+                \ : \"$inputRoot.merchant.merchantId\" ,\n    \"merchantServiceId\"\
+                \ : \"$inputRoot.merchant.merchantServiceId\",\n    \"merchantAnzId\"\
+                \ : \"$inputRoot.merchant.merchantAnzId\",\n    \"merchantName\" :\
+                \ \"$inputRoot.merchant.merchantName\",\n    \"address\" : {\n   \
+                \   \"addressId\" : \"$inputRoot.merchant.address.addressId\",\n \
+                \     \"address\" : \"$inputRoot.merchant.address.address\",\n   \
+                \   \"city\" : \"$inputRoot.merchant.address.city\",\n      \"zipCode\"\
+                \ : \"$inputRoot.merchant.address.zipCode\",\n      \"stateId\": \"\
+                $inputRoot.merchant.address.stateId\"\n      \"state\" : {\n     \
+                \   \"stateId\" : \"$inputRoot.merchant.address.state.stateId\",\n\
+                \        \"stateName\" : \"$inputRoot.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$inputRoot.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$inputRoot.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$inputRoot.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$inputRoot.address.addressId\"\
+                ,\n      \"address\" : \"$inputRoot.address.address\",\n      \"city\"\
+                \ : \"$inputRoot.address.city\",\n      \"zipCode\" : \"$inputRoot.address.zipCode\"\
+                ,\n      \"stateId\": \"$inputRoot.address.stateId\"\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$inputRoot.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$inputRoot.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.address.state.stateCode\"\n\
+                \      },\n      \"countryId\": \"$inputRoot.address.countryId\",\n\
+                \      \"country\" : {\n          \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"5inputRoot.locationName\"\
+                ,\n  \"activeLocation\" : \"$inputRoot.activeLocation\",\n  \"timezone\"\
+                \ : \"$inputRoot.timezone\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    get:
+      tags:
+      - "location"
+      operationId: "getLocationById"
+      summary: "Get location by ID"
+      description: "Returns a single location"
+      parameters:
+      - name: "locationId"
+        description: "ANZPaid ID of location to return"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Get Location Successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfLocation"
+        400:
+          description: "Invalid location id supplied"
+          content: {}
+        404:
+          description: "Location not found"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"locationId\"\
+                \ : \"$inputRoot.locationId\",\n  \"merchant\" : {\n    \"merchantId\"\
+                \ : \"$inputRoot.merchant.merchantId\" ,\n    \"merchantServiceId\"\
+                \ : \"$inputRoot.merchant.merchantServiceId\",\n    \"merchantAnzId\"\
+                \ : \"$inputRoot.merchant.merchantAnzId\",\n    \"merchantName\" :\
+                \ \"$inputRoot.merchant.merchantName\",\n    \"address\" : {\n   \
+                \   \"addressId\" : \"$inputRoot.merchant.address.addressId\",\n \
+                \     \"address\" : \"$inputRoot.merchant.address.address\",\n   \
+                \   \"city\" : \"$inputRoot.merchant.address.city\",\n      \"zipCode\"\
+                \ : \"$inputRoot.merchant.address.zipCode\",\n      \"stateId\": \"\
+                $inputRoot.merchant.address.stateId\",\n      \"state\" : {\n    \
+                \    \"stateId\" : \"$inputRoot.merchant.address.state.stateId\",\n\
+                \        \"stateName\" : \"$inputRoot.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$inputRoot.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$inputRoot.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$inputRoot.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$inputRoot.address.addressId\"\
+                ,\n      \"address\" : \"$inputRoot.address.address\",\n      \"city\"\
+                \ : \"$inputRoot.address.city\",\n      \"zipCode\" : \"$inputRoot.address.zipCode\"\
+                ,\n      \"stateId\": \"$inputRoot.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$inputRoot.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$inputRoot.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.address.state.stateCode\"\n\
+                \      },\n      \"countryId\": \"$inputRoot.address.countryId\",\n\
+                \      \"country\" : {\n          \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"$inputRoot.locationName\"\
+                ,\n  \"activeLocation\" : \"$inputRoot.activeLocation\",\n  \"timezone\"\
+                \ : \"$inputRoot.timezone\",\n  \"createdOn\": \"$inputRoot.origTimestamp\"\
+                ,\n  \"updatedOn\": \"$inputRoot.updatedTimestamp\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    put:
+      tags:
+      - "location"
+      operationId: "updateLocation"
+      summary: "Update a location to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new location"
+      parameters:
+      - name: "locationId"
+        description: "The Location ID you wish to update"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "x-api-key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      - name: "content-type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Location"
+        required: true
+      responses:
+        200:
+          description: "Location updated successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"locationId\"\
+                \ : \"$inputRoot.locationId\",\n  \"merchant\" : {\n    \"merchantId\"\
+                \ : \"$inputRoot.merchant.merchantId\" ,\n    \"merchantServiceId\"\
+                \ : \"$inputRoot.merchant.merchantServiceId\",\n    \"merchantAnzId\"\
+                \ : \"$inputRoot.merchant.merchantAnzId\",\n    \"merchantName\" :\
+                \ \"$inputRoot.merchant.merchantName\",\n    \"address\" : {\n   \
+                \   \"addressId\" : \"$inputRoot.merchant.address.addressId\",\n \
+                \     \"address\" : \"$inputRoot.merchant.address.address\",\n   \
+                \   \"city\" : \"$inputRoot.merchant.address.city\",\n      \"zipCode\"\
+                \ : \"$inputRoot.merchant.address.zipCode\",\n      \"stateId\": \"\
+                $inputRoot.merchant.address.stateId\",\n      \"state\" : {\n     \
+                \   \"stateId\" : \"$inputRoot.merchant.address.state.stateId\",\n\
+                \        \"stateName\" : \"$inputRoot.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$inputRoot.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$inputRoot.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$inputRoot.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$inputRoot.address.addressId\"\
+                ,\n      \"address\" : \"$inputRoot.address.address\",\n      \"city\"\
+                \ : \"$inputRoot.address.city\",\n      \"zipCode\" : \"$inputRoot.address.zipCode\"\
+                ,\n      \"stateId\": \"$inputRoot.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$inputRoot.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$inputRoot.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$inputRoot.address.state.stateCode\"\n\
+                \      },\n      \"countryId\": \"$inputRoot.address.countryId\",\n\
+                \      \"country\" : {\n          \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$inputRoot.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"$inputRoot.locationName\"\
+                ,\n  \"activeLocation\" : \"$inputRoot.activeLocation\",\n  \"timezone\"\
+                \ : \"$inputRoot.timezone\",\n  \"createdOn\": \"$inputRoot.origTimestamp\"\
+                ,\n  \"updatedOn\": \"$inputRoot.updateTimestamp\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+       - "location"
+      parameters:
+      - name: "locationId"
+        description: "The unique ANZPM Location ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,PUT,DELETE'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /location/merchant:
+    options:
+      tags:
+       - "location"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /location/merchant/{merchantId}:
+    get:
+      tags:
+      - "location"
+      operationId: "getLocationsByMerchantId"
+      summary: "List all Locations for a merchant in ANZ Paid"
+      description: "You need to be logged in as the Merchant/ANZ Support to view the merchant locations"
+      parameters:
+      - name: "merchantId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "All Locations for Merchants success"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppLocation:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n[\n##TODO: Update\
+                \ this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n{\n \"locationId\" : \"$elem.locationId\",\n  \"\
+                merchant\" : {\n    \"merchantId\" : \"$elem.merchant.merchantId\"\
+                \ ,\n    \"merchantServiceId\" : \"$elem.merchant.merchantServiceId\"\
+                ,\n    \"merchantAnzId\" : \"$elem.merchant.merchantAnzId\",\n   \
+                \ \"merchantName\" : \"$elem.merchant.merchantName\",\n    \"address\"\
+                \ : {\n      \"addressId\" : \"$elem.merchant.address.addressId\"\
+                ,\n      \"address\" : \"$elem.merchant.address.address\",\n     \
+                \ \"city\" : \"$elem.merchant.address.city\",\n      \"zipCode\" :\
+                \ \"$elem.merchant.address.zipCode\",\n      \"stateId\": \"$elem.merchant.address.stateId\"\
+                ,\n      \"state\" : {\n        \"stateId\" : \"$elem.merchant.address.state.stateId\"\
+                ,\n        \"stateName\" : \"$elem.merchant.address.state.stateName\"\
+                ,\n        \"stateCode\": \"$elem.merchant.address.state.stateCode\"\
+                \n      },\n      \"countryId\": \"$elem.merchant.address.countryId\"\
+                ,\n      \"country\" : {\n          \"countryId\" : \"$elem.merchant.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$elem.merchant.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$elem.merchant.address.country.countryCode\"\
+                \n        }\n    },\n    \"programId\" : \"$elem.merchant.programId\"\
+                \n  },\n  \"address\" : {\n      \"addressId\" : \"$elem.address.addressId\"\
+                ,\n      \"address\" : \"$elem.address.address\",\n      \"city\"\
+                \ : \"$elem.address.city\",\n      \"zipCode\" : \"$elem.address.zipCode\"\
+                ,\n      \"stateId\": \"$elem.address.stateId\",\n      \"state\"\
+                \ : {\n        \"stateId\" : \"$elem.address.state.stateId\",\n  \
+                \      \"stateName\" : \"$elem.address.state.stateName\",\n      \
+                \  \"stateCode\": \"$elem.address.state.stateCode\"\n      },\n  \
+                \    \"countryId\": \"$elem.address.countryId\",\n      \"country\"\
+                \ : {\n          \"countryId\" : \"$elem.address.country.countryId\"\
+                \ ,\n          \"countryName\" : \"$elem.address.country.countryName\"\
+                ,\n          \"countryCode\": \"$elem.address.country.countryCode\"\
+                \n        }\n    },\n  \"locationName\" : \"$elem.locationName\",\n\
+                \  \"activeLocation\" : \"$elem.activeLocation\",\n  \"timezone\"\
+                \ : \"$elem.timezone\"\n}\n#if($foreach.hasNext),#end\n#end\n]"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "location"
+      parameters:
+      - name: "merchantId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /merchant:
+    get:
+      tags:
+      - "merchant"
+      summary: "Get All merchants"
+      description: "Returns all the merchants as an ANZ Admin"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayOfMerchant"
+        405:
+          description: "405 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        504:
+          description: "504 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppMerchant:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n[ \n##TODO:\
+                \ Update this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n{\n  \"merchantId\" : \"$elem.merchantId\", \n \
+                \ \"merchantServiceId\" : \"$elem.merchantServiceId\" ,\n  \"merchantAnzId\"\
+                \ : \"$elem.merchantAnzId\" ,\n  \"merchantName\" : \"$elem.merchantName\"\
+                \ ,\n  \"address\" : {\n    \"addressId\" : \"$elem.address.addressId\"\
+                ,\n    \"address\" : \"$elem.address.address\",\n    \"city\" : \"\
+                $elem.address.city\" ,\n    \"zipCode\" : \"$elem.address.zipCode\"\
+                \ ,\n    \"state\" : {\n      \"stateId\" : \"$elem.address.state.stateId\"\
+                ,\n      \"stateName\" : \"$elem.address.state.stateName\",\n    \
+                \  \"stateCode\": \"$inputRoot.address.state.stateCode\"\n    },\n\
+                \    \"country\" : {\n        \"countryId\" : \"$elem.address.country.countryId\"\
+                ,\n        \"countryName\" : \"$elem.address.country.countryName\"\
+                \n      }\n  },\n  \"mshProgramId\" : \"$elem.mshProgramId\" ,\n \
+                \ \"createdOn\": \"$elem.origTimestamp\",\n  \"updatedOn\": \"$elem.updateTimestamp\"\
+                \n}\n#if($foreach.hasNext),#end\n#end\n]"
+          ^*.timeout.*:
+            statusCode: "504"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          '^*status: 405*':
+            statusCode: "405"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "merchant"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_templates"
+        type: "mock"
+    post:
+      tags:
+        - "merchant"
+      operationId: "addMerchant"
+      summary: "Add a new merchant to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new merchant"
+      parameters:
+      - name: "x-api-key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      - name: "content-type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Merchant"
+        required: true
+      responses:
+        200:
+          description: "Merchant creation successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+        400:
+          description: "400 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+        405:
+          description: "Invalid input"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppMerchant:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"merchantId\"\
+                \ : \"$inputRoot.merchantId\", \n  \"merchantServiceId\" : \"$inputRoot.merchantServiceId\"\
+                \ ,\n  \"merchantAnzId\" : \"$inputRoot.merchantAnzId\" ,\n  \"merchantName\"\
+                \ : \"$inputRoot.merchantName\" ,\n  \"addressId\": \"$inputRoot.address.addressId\"\
+                ,\n  \"address\" : {\n    \"addressId\" : \"$inputRoot.address.addressId\"\
+                ,\n    \"address\" : \"$inputRoot.address.address\",\n    \"city\"\
+                \ : \"$inputRoot.address.city\" ,\n    \"zipCode\" : \"$inputRoot.address.zipCode\"\
+                \ ,\n    \"state\" : {\n      \"stateId\" : \"$inputRoot.address.state.stateId\"\
+                ,\n      \"stateName\" : \"$inputRoot.address.state.stateName\",\n\
+                \      \"stateCode\": \"$inputRoot.address.state.stateCode\"\n   \
+                \  },\n      \"country\" : {\n        \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                ,\n        \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                \n      }\n  },\n  \"mshProgramId\" : \"$inputRoot.mshProgramId\"\
+                ,\n  \"createdOn\": \"$inputRoot.origTimestamp\"\n}"
+          Bad Request*:
+            statusCode: "400"
+          '^\{status: 405*':
+            statusCode: "405"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+  /merchant/{merchantId}:
+    get:
+      tags:
+      - "merchant"
+      operationId: "getMerchantById"
+      summary: "Get merchant by ID"
+      description: "Returns a single merchant"
+      parameters:
+      - name: "merchantId"
+        description: "Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Merchant updated Successfully"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+        400:
+          description: "400 response"
+          content: {}
+        404:
+          description: "404 response"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppMerchant:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"merchantId\"\
+                \ : \"$inputRoot.merchantId\", \n  \"merchantServiceId\" : \"$inputRoot.merchantServiceId\"\
+                \ ,\n  \"merchantAnzId\" : \"$inputRoot.merchantAnzId\" ,\n  \"merchantName\"\
+                \ : \"$inputRoot.merchantName\" ,\n  \"address\" : {\n    \"addressId\"\
+                \ : \"$inputRoot.address.addressId\",\n    \"address\" : \"$inputRoot.address.address\"\
+                ,\n    \"city\" : \"$inputRoot.address.city\" ,\n    \"zipCode\" :\
+                \ \"$inputRoot.address.zipCode\" ,\n    \"state\" : {\n      \"stateId\"\
+                \ : \"$inputRoot.address.state.stateId\",\n      \"stateName\" : \"\
+                $inputRoot.address.state.stateName\",\n      \"stateCode\": \"$inputRoot.address.state.stateCode\"\
+                \n    },\n    \"country\" : {\n        \"countryId\" : \"$inputRoot.addresscountry.countryId\"\
+                ,\n        \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                \n      }\n  },\n  \"mshProgramId\" : \"$inputRoot.mshProgramId\"\
+                ,\n  \"createdOn\": \"$inputRoot.origTimestamp\",\n  \"updatedOn\"\
+                : \"$inputRoot.updateTimestamp\"\n}"
+          Error:*:
+            statusCode: "400"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    put:
+      tags:
+      - "merchant"
+      operationId: "updateMerchant"
+      summary: "Update a merchant to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new merchant"
+      parameters:
+      - name: "merchantId"
+        description: "The unique Merchant ID to update"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Merchant"
+        required: true
+      responses:
+        200:
+          description: "Merchant updation successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+        400:
+          description: "400 response"
+          content: {}
+        404:
+          description: "404 response"
+          content: {}
+        405:
+          description: "Invalid input"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppMerchant:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"merchantId\"\
+                \ : \"$inputRoot.merchantId\", \n  \"merchantServiceId\" : \"$inputRoot.merchantServiceId\"\
+                \ ,\n  \"merchantAnzId\" : \"$inputRoot.merchantAnzId\" ,\n  \"merchantName\"\
+                \ : \"$inputRoot.merchantName\" ,\n  \"address\" : {\n    \"addressId\"\
+                \ : \"$inputRoot.address.addressId\",\n    \"address\" : \"$inputRoot.address.address\"\
+                ,\n    \"city\" : \"$inputRoot.address.city\" ,\n    \"zipCode\" :\
+                \ \"$inputRoot.address.zipCode\" ,\n    \"state\" : {\n      \"stateId\"\
+                \ : \"$inputRoot.address.state.stateId\",\n      \"stateName\" : \"\
+                $inputRoot.address.state.stateName\",\n      \"stateCode\": \"$inputRoot.address.state.stateCode\"\
+                \n    },\n    \"country\" : {\n        \"countryId\" : \"$inputRoot.address.country.countryId\"\
+                ,\n        \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                \n      }\n  },\n  \"mshProgramId\" : \"$inputRoot.mshProgramId\"\
+                \ ,\n  \"createdOn\": \"$inputRoot.origTimestamp\",\n  \"updatedOn\"\
+                : \"$inputRoot.updateTimestamp\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    delete:
+      tags:
+      - "merchant"
+      operationId: "deleteMerchant"
+      summary: "Delete merchant"
+      description: "You need to be logged in as the Customer/ANZ Support to delete a merchant"
+      parameters:
+      - name: "merchantId"
+        description: "ANZPM Merchant ID to delete"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Merchant deleted successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Merchant"
+        400:
+          description: "400 response"
+          content: {}
+        404:
+          description: "404 response"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppMerchant:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"merchantId\"\
+                \ : \"$inputRoot.merchantId\", \n  \"merchantServiceId\" : \"$inputRoot.merchantServiceId\"\
+                \ ,\n  \"merchantAnzId\" : \"$inputRoot.merchantAnzId\" ,\n  \"merchantName\"\
+                \ : \"$inputRoot.merchantName\" ,\n  \"address\" : {\n    \"addressId\"\
+                \ : \"$inputRoot.address.addressId\",\n    \"address\" : \"$inputRoot.address.address\"\
+                ,\n    \"city\" : \"$inputRoot.address.city\" ,\n    \"zipCode\" :\
+                \ \"$inputRoot.address.zipCode\" ,\n    \"state\" : {\n      \"stateId\"\
+                \ : \"$inputRoot.address.state.stateId\",\n      \"stateName\" : \"\
+                $inputRoot.address.state.stateName\"\n    },\n    \"country\" : {\n\
+                \        \"countryId\" : \"$inputRoot.addresscountry.countryId\",\n\
+                \        \"countryName\" : \"$inputRoot.address.country.countryName\"\
+                \n      }\n  },\n  \"programId\" : \"$inputRoot.programId\"\n  \"\
+                createdOn\": \"$elem.origTimestamp\",\n  \"updatedOn\": \"$elem.updateTimestamp\"\
+                \n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "merchant"
+      parameters:
+      - name: "merchantId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /terminal:
+    get:
+      tags:
+      - "terminal"
+      operationId: "getTerminals"
+      summary: "List all Terminals"
+      description: "You need to be logged in as the Merchant/ANZ Support to view the merchant locations"
+      parameters:
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "All Terminals"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+              application/json:
+                  schema:
+                    $ref: "#/components/schemas/ArrayOfTerminal"
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+             application/json: "#set($inputRoot = $input.path('$'))\n[\n##TODO: Update\
+                \ this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n{\n \"anzTerminalId\" : \"$elem.anzTerminalId\"\
+                ,\n  \"terminalId\" : \"$elem.terminalId\",\n  \"linked\" : \"$elem.linkded\"\
+                ,\n  \"serialNumber\" : \"$elem.serialNumber\",\n  \"terminalName\"\
+                \ : \"$elem.terminalName\",\n  \"terminalTypeId\" : \"$elem.terminalTypeId\"\
+                ,\n  \"manufacturerId\" : \"$elem.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$elem.merchantServiceTerminalId\",\n  \"merchantId\": \"$elem.merchantId\"\
+                ,\n  \"location\" : {\n    \"locationName\" : \"$elem.location.locationName\"\
+                ,\n    \"locationId\" : \"$elem.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$elem.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$elem.location.activeLocation\",\n    \"timezone\" : \"$elem.location.timezone\"\
+                ,\n    \"locationReference\" : \"$elem.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$elem.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$elem.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$elem.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$elem.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$elem.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$elem.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$elem.location.merchant.brandName\",\n\
+                \      \"commercialContact\" : \"$elem.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$elem.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$elem.location.merchant.status\",\n      \"\
+                supportContact\" : \"$elem.location.merchant.supportContact\",\n \
+                \     \"taxNumber\" : \"$elem.location.merchant.taxNumber\",\n   \
+                \   \"websiteUrl\" : \"$elem.location.merchant.websiteUrl\",\n   \
+                \   \"createdOn\" : \"$elem.location.merchant.origTimestamp\",\n \
+                \     \"updatedOn\" : \"$elem.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$elem.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$elem.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$elem.location.merchant.address.city\",\n\
+                \        \"addressId\" : \"$elem.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$elem.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$elem.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$elem.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.merchant.address.country.countryCode\",\n     \
+                \     \"countryName\" : \"$elem.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$elem.location.address.address\",\n        \"zipCode\" : \"\
+                $elem.location.address.zipCode\",\n        \"city\" : \"$elem.location.address.city\"\
+                ,\n        \"addressId\" : \"$elem.location.address.addressId\",\n\
+                \        \"stateId\" : \"$elem.location.address.stateId\",\n     \
+                \   \"countryId\" : \"$elem.location.address.countryId\",\n      \
+                \  \"state\" : {\n          \"stateCode\" : \"$elem.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.address.country.countryCode\",\n          \"countryName\"\
+                \ : \"$elem.location.address.country.countryName\"\n        }\n  \
+                \    }\n  },\n  \"partNumber\" : \"$elem.partNumber\",\n  \"subLocation\"\
+                \ : {\n    \"autoInit\" : \"$elem.subLocation.autoInit\",\n    \"\
+                downloadPolicy\" : \"$elem.subLocation.downloadPolicy\",\n    \"locationId\"\
+                : \"$elem.subLocation.locationId\",\n    \"merchantServiceSubLocationId\"\
+                \ : \"$elem.subLocation.merchantServiceSubLocationId\",\n    \"name\"\
+                \ : \"$elem.subLocation.name\",\n    \"poiContract\" : \"$elem.subLocation.poiContact\"\
+                ,\n    \"status\" : \"$elem.subLocation.status\",\n    \"storeLocation\"\
+                \ : \"$elem.subLocation.storeLocation\",\n    \"subLocationId\" :\
+                \ \"$elem.subLocation.subLocationId\",\n    \"syncDevice\" : \"$elem.subLocation.syncDevice\"\
+                \n  },\n  \"terminalReference\" : \"$elem.terminalReference\",\n \
+                \ \"terminalContract\" : \"$elem.terminalContract\"\n}\n#if($foreach.hasNext),#end\n\
+                #end\n]"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "terminal"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+        201:
+          description: "201 response"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /terminal/{terminalId}:
+    delete:
+      tags:
+      - "terminal"
+      operationId: "deleteTerminal"
+      summary: "Delete terminal"
+      description: "You need to be logged in as the Customer/ANZ Support to delete a terminal"
+      parameters:
+      - name: "terminalId"
+        description: "ANZPaid identifier of terminal to be deleted"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Delete terminal Successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Terminal"
+        400:
+          description: "Invalid terminal id supplied"
+          content: {}
+        404:
+          description: "Terminal not found"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"anzTerminalId\"\
+                \ : \"$inputRoot.anzTerminalId\",\n  \"terminalId\" : \"$inputRoot.terminalId\"\
+                ,\n  \"linked\" : \"$inputRoot.linkded\",\n  \"serialNumber\" : \"\
+                $inputRoot.serialNumber\",\n  \"terminalName\" : \"$inputRoot.terminalName\"\
+                ,\n  \"terminalTypeId\" : \"$inputRoot.terminalTypeId\",\n  \"manufacturerId\"\
+                \ : \"$inputRoot.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$inputRoot.merchantServiceTerminalId\",\n  \"merchantId\": \"\
+                $inputRoot.merchantId\",\n  \"location\" : {\n    \"locationName\"\
+                \ : \"$inputRoot.location.locationName\",\n    \"locationId\" : \"\
+                $inputRoot.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$inputRoot.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$inputRoot.location.activeLocation\",\n    \"timezone\" : \"\
+                $inputRoot.location.timezone\",\n    \"locationReference\" : \"$inputRoot.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$inputRoot.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$inputRoot.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$inputRoot.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$inputRoot.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$inputRoot.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$inputRoot.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$inputRoot.location.merchant.brandName\"\
+                ,\n      \"commercialContact\" : \"$inputRoot.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$inputRoot.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$inputRoot.location.merchant.status\",\n \
+                \     \"supportContact\" : \"$inputRoot.location.merchant.supportContact\"\
+                ,\n      \"taxNumber\" : \"$inputRoot.location.merchant.taxNumber\"\
+                ,\n      \"websiteUrl\" : \"$inputRoot.location.merchant.websiteUrl\"\
+                ,\n      \"createdOn\" : \"$inputRoot.location.merchant.origTimestamp\"\
+                ,\n      \"updatedOn\" : \"$inputRoot.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$inputRoot.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$inputRoot.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$inputRoot.location.merchant.address.city\"\
+                ,\n        \"addressId\" : \"$inputRoot.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$inputRoot.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.merchant.address.country.countryCode\",\n\
+                \          \"countryName\" : \"$inputRoot.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$inputRoot.location.address.address\",\n        \"zipCode\"\
+                \ : \"$inputRoot.location.address.zipCode\",\n        \"city\" : \"\
+                $inputRoot.location.address.city\",\n        \"addressId\" : \"$inputRoot.location.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.address.stateId\",\n\
+                \        \"countryId\" : \"$inputRoot.location.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.address.country.countryCode\",\n         \
+                \ \"countryName\" : \"$inputRoot.location.address.country.countryName\"\
+                \n        }\n      }\n  },\n  \"partNumber\" : \"$inputRoot.partNumber\"\
+                ,\n  \"subLocation\" : {\n    \"autoInit\" : \"$inputRoot.subLocation.autoInit\"\
+                ,\n    \"downloadPolicy\" : \"$inputRoot.subLocation.downloadPolicy\"\
+                ,\n    \"locationId\": \"$inputRoot.subLocation.locationId\",\n  \
+                \  \"merchantServiceSubLocationId\" : \"$inputRoot.subLocation.merchantServiceSubLocationId\"\
+                ,\n    \"name\" : \"$inputRoot.subLocation.name\",\n    \"poiContract\"\
+                \ : \"$inputRoot.subLocation.poiContact\",\n    \"status\" : \"$inputRoot.subLocation.status\"\
+                ,\n    \"storeLocation\" : \"$inputRoot.subLocation.storeLocation\"\
+                ,\n    \"subLocationId\" : \"$inputRoot.subLocation.subLocationId\"\
+                ,\n    \"syncDevice\" : \"$inputRoot.subLocation.syncDevice\"\n  },\n\
+                \  \"terminalReference\" : \"$inputRoot.terminalReference\",\n  \"\
+                terminalContract\" : \"$inputRoot.terminalContract\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    get:
+      tags:
+      - "terminal"
+      operationId: "getTerminalById"
+      summary: "Get terminal by ID"
+      description: "Returns a single terminal"
+      parameters:
+      - name: "terminalId"
+        description: "ANZPaid ID of terminal to return"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "Get Terminal Successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Terminal"
+        400:
+          description: "Invalid terminal id supplied"
+          content: {}
+        404:
+          description: "Terminal not found"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"anzTerminalId\"\
+                \ : \"$inputRoot.anzTerminalId\",\n  \"terminalId\" : \"$inputRoot.terminalId\"\
+                ,\n  \"linked\" : \"$inputRoot.linkded\",\n  \"serialNumber\" : \"\
+                $inputRoot.serialNumber\",\n  \"terminalName\" : \"$inputRoot.terminalName\"\
+                ,\n  \"terminalTypeId\" : \"$inputRoot.terminalTypeId\",\n  \"manufacturerId\"\
+                \ : \"$inputRoot.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$inputRoot.merchantServiceTerminalId\",\n  \"merchantId\": \"\
+                $inputRoot.merchantId\",\n  \"location\" : {\n    \"locationName\"\
+                \ : \"$inputRoot.location.locationName\",\n    \"locationId\" : \"\
+                $inputRoot.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$inputRoot.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$inputRoot.location.activeLocation\",\n    \"timezone\" : \"\
+                $inputRoot.location.timezone\",\n    \"locationReference\" : \"$inputRoot.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$inputRoot.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$inputRoot.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$inputRoot.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$inputRoot.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$inputRoot.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$inputRoot.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$inputRoot.location.merchant.brandName\"\
+                ,\n      \"commercialContact\" : \"$inputRoot.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$inputRoot.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$inputRoot.location.merchant.status\",\n \
+                \     \"supportContact\" : \"$inputRoot.location.merchant.supportContact\"\
+                ,\n      \"taxNumber\" : \"$inputRoot.location.merchant.taxNumber\"\
+                ,\n      \"websiteUrl\" : \"$inputRoot.location.merchant.websiteUrl\"\
+                ,\n      \"createdOn\" : \"$inputRoot.location.merchant.origTimestamp\"\
+                ,\n      \"updatedOn\" : \"$inputRoot.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$inputRoot.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$inputRoot.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$inputRoot.location.merchant.address.city\"\
+                ,\n        \"addressId\" : \"$inputRoot.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$inputRoot.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.merchant.address.country.countryCode\",\n\
+                \          \"countryName\" : \"$inputRoot.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$inputRoot.location.address.address\",\n        \"zipCode\"\
+                \ : \"$inputRoot.location.address.zipCode\",\n        \"city\" : \"\
+                $inputRoot.location.address.city\",\n        \"addressId\" : \"$inputRoot.location.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.address.stateId\",\n\
+                \        \"countryId\" : \"$inputRoot.location.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.address.country.countryCode\",\n         \
+                \ \"countryName\" : \"$inputRoot.location.address.country.countryName\"\
+                \n        }\n      }\n  },\n  \"partNumber\" : \"$inputRoot.partNumber\"\
+                ,\n  \"subLocation\" : {\n    \"autoInit\" : \"$inputRoot.subLocation.autoInit\"\
+                ,\n    \"downloadPolicy\" : \"$inputRoot.subLocation.downloadPolicy\"\
+                ,\n    \"locationId\": \"$inputRoot.subLocation.locationId\",\n  \
+                \  \"merchantServiceSubLocationId\" : \"$inputRoot.subLocation.merchantServiceSubLocationId\"\
+                ,\n    \"name\" : \"$inputRoot.subLocation.name\",\n    \"poiContract\"\
+                \ : \"$inputRoot.subLocation.poiContact\",\n    \"status\" : \"$inputRoot.subLocation.status\"\
+                ,\n    \"storeLocation\" : \"$inputRoot.subLocation.storeLocation\"\
+                ,\n    \"subLocationId\" : \"$inputRoot.subLocation.subLocationId\"\
+                ,\n    \"syncDevice\" : \"$inputRoot.subLocation.syncDevice\"\n  },\n\
+                \  \"terminalReference\" : \"$inputRoot.terminalReference\",\n  \"\
+                terminalContract\" : \"$inputRoot.terminalContract\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    put:
+      tags:
+      - "terminal"
+      operationId: "updateTerminal"
+      summary: "Update terminal by ID"
+      description: "Updates a single terminal"
+      parameters:
+      - name: "terminalId"
+        description: "ANZPaid ID of terminal to return"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "Content-Type"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Terminal"
+        required: true
+      responses:
+        200:
+          description: "Update Terminal Successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Terminal"
+        400:
+          description: "Invalid terminal id supplied"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        404:
+          description: "Terminal not found"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        504:
+          description: "504 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+        405:
+          description: "405 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"anzTerminalId\"\
+                \ : \"$inputRoot.anzTerminalId\",\n  \"terminalId\" : \"$inputRoot.terminalId\"\
+                ,\n  \"linked\" : \"$inputRoot.linkded\",\n  \"serialNumber\" : \"\
+                $inputRoot.serialNumber\",\n  \"terminalName\" : \"$inputRoot.terminalName\"\
+                ,\n  \"terminalTypeId\" : \"$inputRoot.terminalTypeId\",\n  \"manufacturerId\"\
+                \ : \"$inputRoot.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$inputRoot.merchantServiceTerminalId\",\n  \"merchantId\": \"\
+                $inputRoot.merchantId\",\n  \"location\" : {\n    \"locationName\"\
+                \ : \"$inputRoot.location.locationName\",\n    \"locationId\" : \"\
+                $inputRoot.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$inputRoot.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$inputRoot.location.activeLocation\",\n    \"timezone\" : \"\
+                $inputRoot.location.timezone\",\n    \"locationReference\" : \"$inputRoot.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$inputRoot.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$inputRoot.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$inputRoot.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$inputRoot.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$inputRoot.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$inputRoot.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$inputRoot.location.merchant.brandName\"\
+                ,\n      \"commercialContact\" : \"$inputRoot.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$inputRoot.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$inputRoot.location.merchant.status\",\n \
+                \     \"supportContact\" : \"$inputRoot.location.merchant.supportContact\"\
+                ,\n      \"taxNumber\" : \"$inputRoot.location.merchant.taxNumber\"\
+                ,\n      \"websiteUrl\" : \"$inputRoot.location.merchant.websiteUrl\"\
+                ,\n      \"createdOn\" : \"$inputRoot.location.merchant.origTimestamp\"\
+                ,\n      \"updatedOn\" : \"$inputRoot.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$inputRoot.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$inputRoot.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$inputRoot.location.merchant.address.city\"\
+                ,\n        \"addressId\" : \"$inputRoot.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$inputRoot.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.merchant.address.country.countryCode\",\n\
+                \          \"countryName\" : \"$inputRoot.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$inputRoot.location.address.address\",\n        \"zipCode\"\
+                \ : \"$inputRoot.location.address.zipCode\",\n        \"city\" : \"\
+                $inputRoot.location.address.city\",\n        \"addressId\" : \"$inputRoot.location.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.address.stateId\",\n\
+                \        \"countryId\" : \"$inputRoot.location.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.address.country.countryCode\",\n         \
+                \ \"countryName\" : \"$inputRoot.location.address.country.countryName\"\
+                \n        }\n      }\n  },\n  \"partNumber\" : \"$inputRoot.partNumber\"\
+                ,\n  \"subLocation\" : {\n    \"autoInit\" : \"$inputRoot.subLocation.autoInit\"\
+                ,\n    \"downloadPolicy\" : \"$inputRoot.subLocation.downloadPolicy\"\
+                ,\n    \"locationId\": \"$inputRoot.subLocation.locationId\",\n  \
+                \  \"merchantServiceSubLocationId\" : \"$inputRoot.subLocation.merchantServiceSubLocationId\"\
+                ,\n    \"name\" : \"$inputRoot.subLocation.name\",\n    \"poiContract\"\
+                \ : \"$inputRoot.subLocation.poiContact\",\n    \"status\" : \"$inputRoot.subLocation.status\"\
+                ,\n    \"storeLocation\" : \"$inputRoot.subLocation.storeLocation\"\
+                ,\n    \"subLocationId\" : \"$inputRoot.subLocation.subLocationId\"\
+                ,\n    \"syncDevice\" : \"$inputRoot.subLocation.syncDevice\"\n  },\n\
+                \  \"terminalReference\" : \"$inputRoot.terminalReference\",\n  \"\
+                terminalContract\" : \"$inputRoot.terminalContract\"\n}"
+          'status: 400':
+            statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "terminal"
+      parameters:
+      - name: "terminalId"
+        description: "ANZPaid ID of terminal"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,PUT,DELETE'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /terminal/merchant/{merchantId}:
+    get:
+      tags:
+      - "terminal"
+      operationId: "getTerminalsByMerchantId"
+      summary: "List all Terminals for a merchant in ANZ Paid"
+      description: "You need to be logged in as the Merchant/ANZ Support to view the merchant locations"
+      parameters:
+      - name: "merchantId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "All Terminals for Merchants success"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+              application/json:
+                  schema:
+                    $ref: "#/components/schemas/ArrayOfTerminal"
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n[\n##TODO: Update\
+                \ this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n{\n \"anzTerminalId\" : \"$elem.anzTerminalId\"\
+                ,\n  \"terminalId\" : \"$elem.terminalId\",\n  \"linked\" : \"$elem.linkded\"\
+                ,\n  \"serialNumber\" : \"$elem.serialNumber\",\n  \"terminalName\"\
+                \ : \"$elem.terminalName\",\n  \"terminalTypeId\" : \"$elem.terminalTypeId\"\
+                ,\n  \"manufacturerId\" : \"$elem.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$elem.merchantServiceTerminalId\",\n  \"merchantId\": \"$elem.merchantId\"\
+                ,\n  \"location\" : {\n    \"locationName\" : \"$elem.location.locationName\"\
+                ,\n    \"locationId\" : \"$elem.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$elem.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$elem.location.activeLocation\",\n    \"timezone\" : \"$elem.location.timezone\"\
+                ,\n    \"locationReference\" : \"$elem.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$elem.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$elem.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$elem.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$elem.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$elem.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$elem.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$elem.location.merchant.brandName\",\n\
+                \      \"commercialContact\" : \"$elem.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$elem.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$elem.location.merchant.status\",\n      \"\
+                supportContact\" : \"$elem.location.merchant.supportContact\",\n \
+                \     \"taxNumber\" : \"$elem.location.merchant.taxNumber\",\n   \
+                \   \"websiteUrl\" : \"$elem.location.merchant.websiteUrl\",\n   \
+                \   \"createdOn\" : \"$elem.location.merchant.origTimestamp\",\n \
+                \     \"updatedOn\" : \"$elem.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$elem.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$elem.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$elem.location.merchant.address.city\",\n\
+                \        \"addressId\" : \"$elem.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$elem.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$elem.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$elem.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.merchant.address.country.countryCode\",\n     \
+                \     \"countryName\" : \"$elem.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$elem.location.address.address\",\n        \"zipCode\" : \"\
+                $elem.location.address.zipCode\",\n        \"city\" : \"$elem.location.address.city\"\
+                ,\n        \"addressId\" : \"$elem.location.address.addressId\",\n\
+                \        \"stateId\" : \"$elem.location.address.stateId\",\n     \
+                \   \"countryId\" : \"$elem.location.address.countryId\",\n      \
+                \  \"state\" : {\n          \"stateCode\" : \"$elem.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.address.country.countryCode\",\n          \"countryName\"\
+                \ : \"$elem.location.address.country.countryName\"\n        }\n  \
+                \    }\n  },\n  \"partNumber\" : \"$elem.partNumber\",\n  \"subLocation\"\
+                \ : {\n    \"autoInit\" : \"$elem.subLocation.autoInit\",\n    \"\
+                downloadPolicy\" : \"$elem.subLocation.downloadPolicy\",\n    \"locationId\"\
+                : \"$elem.subLocation.locationId\",\n    \"merchantServiceSubLocationId\"\
+                \ : \"$elem.subLocation.merchantServiceSubLocationId\",\n    \"name\"\
+                \ : \"$elem.subLocation.name\",\n    \"poiContract\" : \"$elem.subLocation.poiContact\"\
+                ,\n    \"status\" : \"$elem.subLocation.status\",\n    \"storeLocation\"\
+                \ : \"$elem.subLocation.storeLocation\",\n    \"subLocationId\" :\
+                \ \"$elem.subLocation.subLocationId\",\n    \"syncDevice\" : \"$elem.subLocation.syncDevice\"\
+                \n  },\n  \"terminalReference\" : \"$elem.terminalReference\",\n \
+                \ \"terminalContract\" : \"$elem.terminalContract\"\n}\n#if($foreach.hasNext),#end\n\
+                #end\n]"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    post:
+      tags:
+      - "terminal"
+      operationId: "addTerminal"
+      summary: "Add a new terminal to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new terminal"
+      parameters:
+      - name: "merchantId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Terminal"
+        required: true
+      responses:
+        200:
+          description: "Terminal creation successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Terminal"
+        405:
+          description: "Invalid input"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"anzTerminalId\"\
+                \ : \"$inputRoot.anzTerminalId\",\n  \"terminalId\" : \"$inputRoot.terminalId\"\
+                ,\n  \"linked\" : \"$inputRoot.linkded\",\n  \"serialNumber\" : \"\
+                $inputRoot.serialNumber\",\n  \"terminalName\" : \"$inputRoot.terminalName\"\
+                ,\n  \"terminalTypeId\" : \"$inputRoot.terminalTypeId\",\n  \"manufacturerId\"\
+                \ : \"$inputRoot.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$inputRoot.merchantServiceTerminalId\",\n  \"merchantId\": \"\
+                $inputRoot.merchantId\",\n  \"location\" : {\n    \"locationName\"\
+                \ : \"$inputRoot.location.locationName\",\n    \"locationId\" : \"\
+                $inputRoot.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$inputRoot.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$inputRoot.location.activeLocation\",\n    \"timezone\" : \"\
+                $inputRoot.location.timezone\",\n    \"locationReference\" : \"$inputRoot.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$inputRoot.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$inputRoot.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$inputRoot.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$inputRoot.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$inputRoot.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$inputRoot.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$inputRoot.location.merchant.brandName\"\
+                ,\n      \"commercialContact\" : \"$inputRoot.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$inputRoot.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$inputRoot.location.merchant.status\",\n \
+                \     \"supportContact\" : \"$inputRoot.location.merchant.supportContact\"\
+                ,\n      \"taxNumber\" : \"$inputRoot.location.merchant.taxNumber\"\
+                ,\n      \"websiteUrl\" : \"$inputRoot.location.merchant.websiteUrl\"\
+                ,\n      \"createdOn\" : \"$inputRoot.location.merchant.origTimestamp\"\
+                ,\n      \"updatedOn\" : \"$inputRoot.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$inputRoot.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$inputRoot.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$inputRoot.location.merchant.address.city\"\
+                ,\n        \"addressId\" : \"$inputRoot.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$inputRoot.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.merchant.address.country.countryCode\",\n\
+                \          \"countryName\" : \"$inputRoot.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$inputRoot.location.address.address\",\n        \"zipCode\"\
+                \ : \"$inputRoot.location.address.zipCode\",\n        \"city\" : \"\
+                $inputRoot.location.address.city\",\n        \"addressId\" : \"$inputRoot.location.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.address.stateId\",\n\
+                \        \"countryId\" : \"$inputRoot.location.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.address.country.countryCode\",\n         \
+                \ \"countryName\" : \"$inputRoot.location.address.country.countryName\"\
+                \n        }\n      }\n  },\n  \"partNumber\" : \"$inputRoot.partNumber\"\
+                ,\n  \"subLocation\" : {\n    \"autoInit\" : \"$inputRoot.subLocation.autoInit\"\
+                ,\n    \"downloadPolicy\" : \"$inputRoot.subLocation.downloadPolicy\"\
+                ,\n    \"locationId\": \"$inputRoot.subLocation.locationId\",\n  \
+                \  \"merchantServiceSubLocationId\" : \"$inputRoot.subLocation.merchantServiceSubLocationId\"\
+                ,\n    \"name\" : \"$inputRoot.subLocation.name\",\n    \"poiContract\"\
+                \ : \"$inputRoot.subLocation.poiContact\",\n    \"status\" : \"$inputRoot.subLocation.status\"\
+                ,\n    \"storeLocation\" : \"$inputRoot.subLocation.storeLocation\"\
+                ,\n    \"subLocationId\" : \"$inputRoot.subLocation.subLocationId\"\
+                ,\n    \"syncDevice\" : \"$inputRoot.subLocation.syncDevice\"\n  },\n\
+                \  \"terminalReference\" : \"$inputRoot.terminalReference\",\n  \"\
+                terminalContract\" : \"$inputRoot.terminalContract\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "terminal"
+      parameters:
+      - name: "merchantId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /terminal/location/{locationId}:
+    get:
+      tags:
+      - "terminal"
+      operationId: "getTerminalsByLocationId"
+      summary: "List all Terminals for a merchant in ANZ Paid"
+      description: "You need to be logged in as the Merchant/ANZ Support to view the merchant locations"
+      parameters:
+      - name: "locationId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "X-Api-Key"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "All Terminals for Merchants success"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+              application/json:
+                  schema:
+                    $ref: "#/components/schemas/ArrayOfTerminal"
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n[\n##TODO: Update\
+                \ this foreach loop to reference array from input json\n#foreach($elem\
+                \ in $inputRoot)\n{\n \"anzTerminalId\" : \"$elem.anzTerminalId\"\
+                ,\n  \"terminalId\" : \"$elem.terminalId\",\n  \"linked\" : \"$elem.linkded\"\
+                ,\n  \"serialNumber\" : \"$elem.serialNumber\",\n  \"terminalName\"\
+                \ : \"$elem.terminalName\",\n  \"terminalTypeId\" : \"$elem.terminalTypeId\"\
+                ,\n  \"manufacturerId\" : \"$elem.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$elem.merchantServiceTerminalId\",\n  \"merchantId\": \"$elem.merchantId\"\
+                ,\n  \"location\" : {\n    \"locationName\" : \"$elem.location.locationName\"\
+                ,\n    \"locationId\" : \"$elem.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$elem.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$elem.location.activeLocation\",\n    \"timezone\" : \"$elem.location.timezone\"\
+                ,\n    \"locationReference\" : \"$elem.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$elem.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$elem.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$elem.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$elem.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$elem.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$elem.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$elem.location.merchant.brandName\",\n\
+                \      \"commercialContact\" : \"$elem.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$elem.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$elem.location.merchant.status\",\n      \"\
+                supportContact\" : \"$elem.location.merchant.supportContact\",\n \
+                \     \"taxNumber\" : \"$elem.location.merchant.taxNumber\",\n   \
+                \   \"websiteUrl\" : \"$elem.location.merchant.websiteUrl\",\n   \
+                \   \"createdOn\" : \"$elem.location.merchant.origTimestamp\",\n \
+                \     \"updatedOn\" : \"$elem.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$elem.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$elem.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$elem.location.merchant.address.city\",\n\
+                \        \"addressId\" : \"$elem.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$elem.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$elem.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$elem.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.merchant.address.country.countryCode\",\n     \
+                \     \"countryName\" : \"$elem.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$elem.location.address.address\",\n        \"zipCode\" : \"\
+                $elem.location.address.zipCode\",\n        \"city\" : \"$elem.location.address.city\"\
+                ,\n        \"addressId\" : \"$elem.location.address.addressId\",\n\
+                \        \"stateId\" : \"$elem.location.address.stateId\",\n     \
+                \   \"countryId\" : \"$elem.location.address.countryId\",\n      \
+                \  \"state\" : {\n          \"stateCode\" : \"$elem.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$elem.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$elem.location.address.country.countryCode\",\n          \"countryName\"\
+                \ : \"$elem.location.address.country.countryName\"\n        }\n  \
+                \    }\n  },\n  \"partNumber\" : \"$elem.partNumber\",\n  \"subLocation\"\
+                \ : {\n    \"autoInit\" : \"$elem.subLocation.autoInit\",\n    \"\
+                downloadPolicy\" : \"$elem.subLocation.downloadPolicy\",\n    \"locationId\"\
+                : \"$elem.subLocation.locationId\",\n    \"merchantServiceSubLocationId\"\
+                \ : \"$elem.subLocation.merchantServiceSubLocationId\",\n    \"name\"\
+                \ : \"$elem.subLocation.name\",\n    \"poiContract\" : \"$elem.subLocation.poiContact\"\
+                ,\n    \"status\" : \"$elem.subLocation.status\",\n    \"storeLocation\"\
+                \ : \"$elem.subLocation.storeLocation\",\n    \"subLocationId\" :\
+                \ \"$elem.subLocation.subLocationId\",\n    \"syncDevice\" : \"$elem.subLocation.syncDevice\"\
+                \n  },\n  \"terminalReference\" : \"$elem.terminalReference\",\n \
+                \ \"terminalContract\" : \"$elem.terminalContract\"\n}\n#if($foreach.hasNext),#end\n\
+                #end\n]"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    post:
+      tags:
+      - "terminal"
+      operationId: "addTerminal"
+      summary: "Add a new terminal to ANZ Paid"
+      description: "You need to be logged in as the Customer/ANZ Support to add a new terminal"
+      parameters:
+      - name: "locationId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Terminal"
+        required: true
+      responses:
+        200:
+          description: "Terminal creation successful"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Terminal"
+        405:
+          description: "Invalid input"
+          content: {}
+      security:
+      - api_key: []
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:572366905687:function:anzPaidAppTerminal:${stageVariables.lambdaAlias}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"anzTerminalId\"\
+                \ : \"$inputRoot.anzTerminalId\",\n  \"terminalId\" : \"$inputRoot.terminalId\"\
+                ,\n  \"linked\" : \"$inputRoot.linkded\",\n  \"serialNumber\" : \"\
+                $inputRoot.serialNumber\",\n  \"terminalName\" : \"$inputRoot.terminalName\"\
+                ,\n  \"terminalTypeId\" : \"$inputRoot.terminalTypeId\",\n  \"manufacturerId\"\
+                \ : \"$inputRoot.manufacturerId\",\n  \"merchantServiceTerminalId\"\
+                \ : \"$inputRoot.merchantServiceTerminalId\",\n  \"merchantId\": \"\
+                $inputRoot.merchantId\",\n  \"location\" : {\n    \"locationName\"\
+                \ : \"$inputRoot.location.locationName\",\n    \"locationId\" : \"\
+                $inputRoot.location.locationId\",\n    \"merchantServiceLocationId\"\
+                \ : \"$inputRoot.location.merchantServiceLocationId\",\n    \"activeLocation\"\
+                \ : \"$inputRoot.location.activeLocation\",\n    \"timezone\" : \"\
+                $inputRoot.location.timezone\",\n    \"locationReference\" : \"$inputRoot.location.locationReference\"\
+                ,\n    \"merchant\" : {\n      \"merchantId\" : \"$inputRoot.location.merchant.merchantId\"\
+                ,\n      \"merchantServiceId\" : \"$inputRoot.location.merchant.merchantServiceId\"\
+                ,\n      \"mshProgramId\" : \"$inputRoot.location.merchant.mshProgramId\"\
+                ,\n      \"merchantAnzId\" : \"$inputRoot.location.merchant.merchantAnzId\"\
+                ,\n      \"merchantName\" : \"$inputRoot.location.merchant.merchantName\"\
+                ,\n      \"alipayMerchantId\" : \"$inputRoot.location.merchant.alipayMerchantId\"\
+                ,\n      \"brandName\" : \"$inputRoot.location.merchant.brandName\"\
+                ,\n      \"commercialContact\" : \"$inputRoot.location.merchant.commercialContact\"\
+                ,\n      \"mshAcquirerId\" : \"$inputRoot.location.merchant.mshAcquirerId\"\
+                ,\n      \"status\" : \"$inputRoot.location.merchant.status\",\n \
+                \     \"supportContact\" : \"$inputRoot.location.merchant.supportContact\"\
+                ,\n      \"taxNumber\" : \"$inputRoot.location.merchant.taxNumber\"\
+                ,\n      \"websiteUrl\" : \"$inputRoot.location.merchant.websiteUrl\"\
+                ,\n      \"createdOn\" : \"$inputRoot.location.merchant.origTimestamp\"\
+                ,\n      \"updatedOn\" : \"$inputRoot.location.merchant.updateTimestamp\"\
+                ,\n      \"address\" : {\n        \"address\" : \"$inputRoot.location.merchant.address.address\"\
+                ,\n        \"zipCode\" : \"$inputRoot.location.merchant.address.zipCode\"\
+                ,\n        \"city\" : \"$inputRoot.location.merchant.address.city\"\
+                ,\n        \"addressId\" : \"$inputRoot.location.merchant.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.merchant.address.stateId\"\
+                ,\n        \"countryId\" : \"$inputRoot.location.merchant.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.merchant.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.merchant.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.merchant.address.country.countryCode\",\n\
+                \          \"countryName\" : \"$inputRoot.location.merchant.address.country.countryName\"\
+                \n        }\n      }\n    },\n    \"address\" : {\n        \"address\"\
+                \ : \"$inputRoot.location.address.address\",\n        \"zipCode\"\
+                \ : \"$inputRoot.location.address.zipCode\",\n        \"city\" : \"\
+                $inputRoot.location.address.city\",\n        \"addressId\" : \"$inputRoot.location.address.addressId\"\
+                ,\n        \"stateId\" : \"$inputRoot.location.address.stateId\",\n\
+                \        \"countryId\" : \"$inputRoot.location.address.countryId\"\
+                ,\n        \"state\" : {\n          \"stateCode\" : \"$inputRoot.location.address.state.stateCode\"\
+                ,\n          \"stateName\" : \"$inputRoot.location.address.state.stateName\"\
+                \n        },\n        \"country\" : {\n          \"countryCode\" :\
+                \ \"$inputRoot.location.address.country.countryCode\",\n         \
+                \ \"countryName\" : \"$inputRoot.location.address.country.countryName\"\
+                \n        }\n      }\n  },\n  \"partNumber\" : \"$inputRoot.partNumber\"\
+                ,\n  \"subLocation\" : {\n    \"autoInit\" : \"$inputRoot.subLocation.autoInit\"\
+                ,\n    \"downloadPolicy\" : \"$inputRoot.subLocation.downloadPolicy\"\
+                ,\n    \"locationId\": \"$inputRoot.subLocation.locationId\",\n  \
+                \  \"merchantServiceSubLocationId\" : \"$inputRoot.subLocation.merchantServiceSubLocationId\"\
+                ,\n    \"name\" : \"$inputRoot.subLocation.name\",\n    \"poiContract\"\
+                \ : \"$inputRoot.subLocation.poiContact\",\n    \"status\" : \"$inputRoot.subLocation.status\"\
+                ,\n    \"storeLocation\" : \"$inputRoot.subLocation.storeLocation\"\
+                ,\n    \"subLocationId\" : \"$inputRoot.subLocation.subLocationId\"\
+                ,\n    \"syncDevice\" : \"$inputRoot.subLocation.syncDevice\"\n  },\n\
+                \  \"terminalReference\" : \"$inputRoot.terminalReference\",\n  \"\
+                terminalContract\" : \"$inputRoot.terminalContract\"\n}"
+        requestTemplates:
+          application/json: "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n\
+            ##  This template will pass through all parameters including path, querystring,\
+            \ header, stage variables, and context through to the integration endpoint\
+            \ via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\"\
+            \ : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n\
+            \    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName\
+            \ in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\
+            \n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n\
+            #end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\
+            \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n   \
+            \ #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\"\
+            \ : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\"\
+            ,\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\"\
+            \ : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\"\
+            ,\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\"\
+            ,\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\"\
+            ,\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\"\
+            ,\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\"\
+            ,\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"\
+            $context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\"\
+            ,\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"\
+            $context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\"\
+            ,\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" :\
+            \ \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\
+            \n    }\n}\n"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
+      tags:
+      - "terminal"
+      parameters:
+      - name: "locationId"
+        description: "The Unique ANZPM Merchant ID"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+components:
+  schemas:
+    Address:
+      type: "object"
+      required:
+      - "address"
+      - "city"
+      - "zipCode"
+      properties:
+        address:
+          minLength: 2
+          type: "string"
+          description: "Physical or logical address"
+        zipCode:
+          minLength: 2
+          type: "string"
+          description: "Unique city postcode/zipcode"
+        city:
+          minLength: 2
+          type: "string"
+          description: "City Name"
+        addressId:
+          type: "string"
+          format: "uuid"
+          description: "Unique Address Identifier"
+        stateId:
+          type: "string"
+          format: "uuid"
+        countryId:
+          type: "string"
+          format: "uuid"
+        state:
+          $ref: "#/components/schemas/State"
+        country:
+          $ref: "#/components/schemas/Country"
+    ArrayOfAddress:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Address"
+    ArrayOfLocation:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Location"
+    ArrayOfMerchant:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Merchant"
+    ArrayOfSubLocation:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/SubLocation"
+    ArrayOfTerminal:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Terminal"
+    Country:
+      type: "object"
+      required:
+      - "countryName"
+      properties:
+        countryCode:
+          minLength: 2
+          type: "string"
+          description: "ISO3166 country code (Alpha 2 code) - https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AU"
+        countryName:
+          minLength: 2
+          type: "string"
+          default: "Australia"
+          description: "Name of Country"
+        countryId:
+          type: "string"
+          format: "uuid"
+          description: "unique country identifier hash"
+    Location:
+      type: "object"
+      required:
+      - "merchant"
+      properties:
+        locationName:
+          maxLength: 40
+          minLength: 2
+          type: "string"
+          description: "Human friendly name of location"
+        locationId:
+          type: "string"
+          format: "uuid"
+          description: "internal unique identifier"
+        merchantServiceLocationId:
+          type: "string"
+          format: "uuid"
+          description: "Service Provider Location/Store ID"
+        activeLocation:
+          type: "boolean"
+        timezone:
+          minLength: 5
+          type: "string"
+          description: "Timezone of Location - used to interpret dates"
+        locationReference:
+          maxLength: 40
+          minLength: 2
+          type: "string"
+          description: "Description of location"
+        merchant:
+          $ref: "#/components/schemas/Merchant"
+        address:
+          $ref: "#/components/schemas/Address"
+    Merchant:
+      type: "object"
+      required:
+      - "merchantName"
+      properties:
+        merchantId:
+          type: "string"
+          format: "uuid"
+          description: "ANZPM Merchant Identifier - Uniquely generated upon creation. Used internally throughout ANZPM as the unique Merchant identifier."
+        merchantServiceId:
+          type: "string"
+          format: "uuid"
+          description: "Ingenico - Merchant Services Hub Merchant ID - this is autogenerated in MSH on creation of a merchant"
+        mshProgramId:
+          type: "string"
+          format: "uuid"
+          description: "Ingenico - Merchant Services Hub Program ID. In MSH, this program defines what financial service offerings the merchant can perform."
+        merchantAnzId:
+          minLength: 2
+          type: "string"
+          description: "ANZ Merchant ID. These are allocated in ANZ Payment Gateway and assigned in Ingenico TEM. All transactions will use this MID"
+        merchantName:
+          maxLength: 40
+          minLength: 2
+          type: "string"
+          description: "Name of Merchant"
+        alipayMerchantId:
+          minLength: 2
+          type: "string"
+          description: "Alipay Merchant ID"
+        brandName:
+          maxLength: 40
+          minLength: 2
+          type: "string"
+          description: "Merchant brand name"
+        commercialContact:
+          minLength: 2
+          type: "string"
+          description: "Commercial contact name"
+        mshAcquirerId:
+          minLength: 2
+          type: "string"
+          description: "Ingenico - Merchant Services Hub Estate Owner ID"
+        status:
+          type: "string"
+          description: "Merchant Status type"
+        supportContact:
+          minLength: 2
+          type: "string"
+          description: "Name of Merchant contact"
+        taxNumber:
+          minLength: 2
+          type: "string"
+          description: "GST/VAT or equivalent percentage"
+        websiteUrl:
+          minLength: 2
+          type: "string"
+          description: "Website URL Address"
+        createdOn:
+          type: "string"
+          format: "datetime"
+        updatedOn:
+          type: "string"
+          format: "datetime"
+        address:
+          $ref: "#/components/schemas/Address"
+    State:
+      type: "object"
+      required:
+      - "stateName"
+      properties:
+        countryCode:
+          minLength: 2
+          type: "string"
+          description: "unique country identifier to map to"
+        stateCode:
+          minLength: 2
+          type: "string"
+          description: "Conventional abbreviation of the state or territory (defined in Australian Standard AS 4212-1994 - https://en.wikipedia.org/wiki/ISO_3166-2:AU"
+          default: "VIC"
+        stateName:
+          minLength: 2
+          type: "string"
+          description: "Name of State/Provence within country"
+        stateId:
+          type: "string"
+          format: "uuid"
+          description: "Unique State identifier"
+    SubLocation:
+      type: "object"
+      required: [
+        "name",
+        "poiContract",
+        "location"
+      ]
+      properties:
+        autoInit:
+          type: "string"
+          description: "N/A"
+        downloadPolicy:
+          type: "string"
+          description: "a url where the download policy can be found."
+        location:
+          $ref: "#/components/schemas/Location"
+        merchantServiceSubLocationId:
+          type: "string"
+          description: "Ingenico - MSH generated ID for POS (subLocation)"
+        name:
+          type: "string"
+          minLength: 2
+          description: "name of SubLocation (POS in MSH)"
+        poiContract:
+          type: "string"
+          default: 500
+          description: "the contract provided that articulates in MSH what features the sub Location can do"
+        status:
+          type: "string"
+          description: "The status of the subLocation"
+        storeLocation:
+          type: "string"
+          description: "Text reference of Location"
+        subLocationId:
+          type: "string"
+          description: "ANZPM Unique Sub Location Identifier"
+        syncDevice:
+          type: "boolean"
+          description: "N/A"
+    Terminal:
+      type: "object"
+      required:
+      - "serialNumber"
+      properties:
+        anzTerminalId:
+          type: "string"
+          format: "uuid"
+          description: "Generated by ANZ Payment Gateway (EDMS), This is assigned in Ingenico TEM"
+        terminalId:
+          type: "string"
+          format: "uuid"
+          description: "ANZPM autogenerated Unique Terminal Identifier."
+        linked:
+          type: "boolean"
+          description: "Is the terminal linked to a POS/SubLocation?"
+        serialNumber:
+          minLength: 8
+          type: "string"
+          description: "terminal unique hardware identifier"
+        merchant:
+          $ref: "#/components/schemas/Merchant"
+        terminalName:
+          maxLength: 40
+          minLength: 2
+          type: "string"
+          description: "Human friendly terminal name"
+        terminalTypeId:
+          type: "string"
+          format: "uuid"
+        manufacturerId:
+          pattern: "^\\d{2}$"
+          type: "string"
+          default: "03"
+        merchantServiceTerminalId:
+          minLength: 8
+          type: "string"
+          description: "Ingenico - MSH Terminal ID"
+        location:
+          $ref: "#/components/schemas/Location"
+        partNumber:
+          type: "string"
+          description: "Part Number of terminal"
+        subLocation:
+          $ref: "#/components/schemas/SubLocation"
+        terminalReference:
+          type: "string"
+          description: "Text reference of terminal in MSH"
+        terminalContract:
+          type: "string"
+          description: "Contract number"
+          default: "250"
+    Transaction:
+      type: "object"
+      required:
+      - "totalAmount"
+      - "terminal"
+      properties:
+        aIDNumber:
+          type: "string"
+          description: "Application Terminal identifier"
+        applicationIdentifier:
+          type: "string"
+          description: "Application Identifier terminal"
+        applicationLabel:
+          type: "string"
+          nullable: true
+          enum: ["MAESTRO", "VISA", "AMERICAN EXPRESS", "DINERS CLUB", "MASTERCARD", "AURORA", "JCB", "SOLO", "SWITCH/MAESTRO", "AURORE", "DIRECT DEBITS NL", "AIRPLUS", "BANK TRANSFER NL", "ING HOMEPAY", "BBL HOMEBANK", "CBC ONLINE", "DEXIA NETBANKING", "KBC ONLINE", "RABO DIRECT", "CASHU DIRECT", "CARTE BLEUE", "MINITIX", "DIRECT DEBITS DE", "CENTEA ONLINE", "BILL", "BANK TRANSFER", "ACCEPTGIRO", "PAYMENT ON DELIVERY", "IDEAL", "PAYPAL", "WALLIE", "BCMC", "UATP", "COFINOGA", "UNEUROCOM", "DEBIT DIRECT", "TUNZ", "YELLOWNET", "EPS", "EDANKORT", "DANKORT", "GIROPAY", "QUATREETOILES", "FORTIS PAY BUTTON", "BANK TRANSFER FR", "PAYSAFECARD", "BILLY", "DIRECTEBANKING", "DISCOVER", "CASHTICKET", "PRINTEMPS", "KANGOUROU", "CYRILLUS", "SURCOUF", "OKSHOPPING", "GO SPORT", "MANDARINE", "BANK TRANSFER BE", "SCORE", "DIRECT DEBITS AT", "CLUB MED", "FNAC", "DIRECTEBANKINGDE", "DIRECTEBANKINGCH", "DIRECTEBANKINGAT", "DIRECTEBANKINGFR", "DIRECTEBANKINGNL"]
+          description: "MSH:applicationLabel - Payment Brand of transaction"
+        authorisationCode:
+          type: "string"
+          description: "Acquirer authorisation/approval code"
+        authorisedAmount:
+          type: "number"
+          format: "double"
+          description: "MSH:amountAuthorised - Authorized Amount"
+        cardBrand:
+          type: "string"
+        cardHolderSignature:
+          type: "string"
+          description: "BPM in base64. Only present if the receipt is not present"
+        cardReadingMethod:
+          nullable: true
+          type: "string"
+          enum: ["NONE", "RFID", "KEYED", "MANUAL", "FILE", "SCANNED", "MAGSTRIPE", "EMV CHIP", "ICC", "SYNCHRONOUS ICC", "TAPPED", "CONTACTLESS", "MOBILE", "NON EMV CHIP"]
+          description: "MSH:technologySelected - Technology selected for payment"
+        cardReadingSerialNumber:
+          type: "string"
+        cardType:
+          type: "string"
+          nullable: true
+          enum: ["INTERNATIONAL", "CHARGE CARD", "DEBIT", "PREPAID", "CARTE BLANCHE", "UNKNOWN", "ELECTRON", "GENERIC", "REWARD CARD", "CREDIT", "CLASSIC"]
+          description: "Transaction card type"
+        cashbackAmount:
+          type: "number"
+          format: "double"
+        clientId:
+          type: "string"
+        comment:
+          type: "string"
+        currencyCode:
+          type: "string"
+          default: "AUD"
+          description: "ISO Code of currency"
+        customerPerson:
+          type: "string"
+        cvmResult:
+          nullable: true
+          type: "string"
+          enum: ["NONE", "BYPASS", "MANUAL VERIFICATION", "MERCHANT AUTHENTICATION", "OFFLINE ENCIPHERED PIN", "OFFLINE PLAINTEXT PIN", "ONLINE ENCIPHERED PIN", "PAPER SIGNATURE", "PASSWORD", "SECURE CERTIFICATE", "SECURED CHANNEL", "SECURE NO CERTIFICATE", "SIGNATURE CAPTURE", "UNKNOWN", "AVS", "3D SECURE", "CSC RESULT", "AVR RESULT", "NO 3D SECURE", "OFFLINE PLAINTEXT PIN AND SIGNATURE", "OFFLINE ENCIPHERED PIN AND SIGNATURE", "ADDRESS VERIFICATION"]
+          description: "Authentication Method"
+        dCCAuthorisedAmount:
+          type: "number"
+          format: "double"
+          description: "Authorised Amount"
+        dCCAmountOther:
+          type: "number"
+          format: "double"
+          description: "Other amount"
+        dCCcurrencyCode:
+          type: "string"
+          default: "AUD"
+          description: "ISO currency Code"
+        dCCSupplementaryAmount:
+          type: "number"
+          format: "double"
+          description: "Supplementary Amount"
+        dCCTransactionAmount:
+          type: "number"
+          format: "double"
+          description: "Transaction Amount"
+        errorCause:
+          type: "string"
+        extrasAccessPointName:
+          type: "string"
+        extrasApplication:
+          type: "string"
+        extrasITP:
+          type: "string"
+        iCid:
+          type: "string"
+          description: "Inbound connector identifier - set by the terminal"
+        iINNumber:
+          type: "string"
+          description: "Issuer Identification Number"
+        location:
+          $ref: "#/components/schemas/Location"
+        maskedPan:
+          type: "string"
+          description: "Masked PAN number - last 4 digits should be visible"
+        mCCNumber:
+          type: "string"
+        merchantReceiptHtml:
+          type: "string"
+          description: "MSH:merchantReceipt - html fragment in string including the card holder"
+        merchantServiceTerminalId:
+          type: "string"
+        nokReason:
+          nullable: true
+          enum: ["NONE", "CANCELLED", "CARD BLOCKED", "CARD MISSING", "CHIP ERROR", "DATA ERROR", "EMPTY LIST", "GPO6985", "MISSING DATA", "NO CARD INSERTED", "NO PROFILE", "NOT ACCEPTED", "TIMEOUT", "ABORTED", "FALLBACK PROHIBITED", "CONFIGURATION ERROR", "CAM FAILED", "KERNEL ERROR", "TECHNICAL ERROR", "AMOUNT ERROR", "DELIVERY ERROR", "DATA ENTRY ERROR"]
+          description: "A reason why MSH:transactionResult or ANZPM:transactionStatus is DECLINED"
+        originalTransactionId:
+          type: "string"
+          description: "The original transaction ID that this transaction is related to"
+        otherAmount:
+          type: "number"
+          format: "double"
+          description: "MSH:amountOther - Other Amount"
+        paymentMethod:
+          type: "string"
+          enum: ["CARD", "CHECK", "WALLET", "GIFTCARD", "LOYALTYCARD", "MANDATE", "MOBILE", "STOREDVALUE", "CASH", "VOUCHER", "3RD PARTY", "DIRECTDEBIT", "CREDITTRANSFER"]
+          description: "MSH:transactionType - Payment instrument type"
+        receiptHtml:
+          type: "string"
+          description: "MSH:cardHolderReceipt - html fragment in string including the card holder"
+        receiptNumber:
+          type: "string"
+        receiptSentMethod:
+          nullable: true
+          type: "string"
+          enum: ["not sent", "email", "sms"]
+        supplementaryAmount:
+          type: "number"
+          format: "double"
+        salesPerson:
+          type: "string"
+        sequenceCounter:
+          type: "string"
+          description: "MSH:transactionSequenceCounter - Transaction Sequence Counter"
+        terminal:
+          $ref: "#/components/schemas/Terminal"
+        totalAmount:
+          type: "number"
+          format: "double"
+          description: "MSH:transactionAmount - total amount charged"
+        transactionCodeDescription:
+          type: "string"
+        transactionDate:
+          type: "string"
+          format: "date-time"
+          description: "MSH:mshTransactionTime - Time when the transaction is created and used for all requests and transactions"
+        transactionId:
+          type: "string"
+          description: "Unique transaction identifier - created on terminal from a combination of terminalId, serialNumber and timestamp to ensure uniqueness"
+        transactionMeans:
+          nullable: true
+          type: "string"
+          enum: ["moto"]
+        transactionStatus:
+          type: "string"
+          enum: ["NONE", "APPROVED", "DECLINED", "ABORTED", "VOICE AUTHORISATION", "PAYMENT PART ONLY", "PARTIALLY APPROVED", "CAPTURED"]
+          description: "MSH:transactionResult - Transaction Verdict result"
+        transactionType:
+          type: "string"
+          enum: ["NONE", "BALANCE", "CARD ACTIVATION", "CASH DEPOSIT", "PAYMENT", "ORIGINAL CREDIT", "LOADING", "REFUND", "CANCELLATION", "RESERVATION COMPLETION", "DEFERRED PAYMENT", "RESERVATION", "VERIFICATION", "QUASI- CASH PAYMENT", "FUND TRANSFER", "CASH ADVANCE", "CASHBACK", "PIN CHANGE", "VALIDITY CHECK", "DEFERRED PAYMENT COMPLETION", "VOICE AUTHORISATION", "PAYMENT COMPLETION", "CARDHOLDER DETECTION"]
+          description: "MSH:selectedService - Payment type of selected service"
+        uniqueCardId:
+          type: "string"
+  securitySchemes:
+    api_key:
+      type: "apiKey"
+      name: "x-api-key"
+      in: "header"
+x-amazon-apigateway-gateway-responses:
+  DEFAULT_5XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+  DEFAULT_4XX:
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+      gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+x-amazon-apigateway-request-validators:
+  Validate body, query string parameters, and headers:
+    validateRequestParameters: true
+    validateRequestBody: true

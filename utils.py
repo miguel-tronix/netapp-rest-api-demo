@@ -46,7 +46,7 @@ def update_old_with_new(obj_tmpl, old_obj, new_obj):
 
 def setup_logging(
         logger_name=__name__,
-        default_path='logging.yml',
+        default_path='configs/logging.yml',
         default_level=logging.INFO,
         env_key='LOG_CFG'
         ):
