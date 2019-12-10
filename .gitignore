@@ -1,3 +1,4 @@
+#IGNORE Compiled files, logs and libraries
 *.pyc
 *.log
 libs/
